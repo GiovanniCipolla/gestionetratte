@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import it.prova.gestionetratte.dto.AirbusDTO;
 import it.prova.gestionetratte.model.Airbus;
 import it.prova.gestionetratte.service.AirbusService;
+import it.prova.gestionetratte.web.api.exception.AirbusNotFoundException;
+import it.prova.gestionetratte.web.api.exception.IdNotNullForInsertException;
 
 @RestController
 @RequestMapping("api/airbus")
@@ -38,8 +40,8 @@ public class AirbusController {
 	public AirbusDTO findById(@PathVariable(value = "id", required = true) long id) {
 		Airbus airbus = airbusService.caricaSingoloElemento(id, true);
 
-//		if (airbus == null)
-//			throw new RegistaNotFoundException("Regista not found con id: " + id);
+		if (airbus == null)
+			throw new AirbusNotFoundException("Regista not found con id: " + id);
 
 		return AirbusDTO.buildAirbusDTOFromModel(airbus, true);
 	}
@@ -49,8 +51,8 @@ public class AirbusController {
 	public AirbusDTO createNew(@Valid @RequestBody AirbusDTO airbusInput) {
 		// se mi viene inviato un id jpa lo interpreta come update ed a me (producer)
 		// non sta bene
-//		if (airbusInput.getId() != null)
-//			throw new IdNotNullForInsertException("Non è ammesso fornire un id per la creazione");
+		if (airbusInput.getId() != null)
+			throw new IdNotNullForInsertException("Non è ammesso fornire un id per la creazione");
 
 		Airbus airbusInserito = airbusService.inserisciNuovo(airbusInput.buildAirbusModel());
 
@@ -61,8 +63,8 @@ public class AirbusController {
 	public AirbusDTO update(@Valid @RequestBody AirbusDTO airbusInput, @PathVariable(required = true) Long id) {
 		Airbus airbus = airbusService.caricaSingoloElemento(id, false);
 
-//		if (regista == null)
-//			throw new RegistaNotFoundException("Regista not found con id: " + id);
+		if (airbus == null)
+			throw new AirbusNotFoundException("Regista not found con id: " + id);
 
 		airbusInput.setId(id);
 		Airbus airbusAggiornato = airbusService.aggiorna(airbusInput.buildAirbusModel());
@@ -81,4 +83,8 @@ public class AirbusController {
 				false);
 	}
 
+	@GetMapping("/listaAirbusEvidenziandoSovrapposizioni")
+	public List<AirbusDTO> listaAirbusEvidenziandoSovrapposizioni() {
+		return airbusService.listaAirbusEvidenziandoSovrapposizioni();
+	}
 }

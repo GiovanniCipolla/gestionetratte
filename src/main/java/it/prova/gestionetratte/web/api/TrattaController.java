@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import it.prova.gestionetratte.dto.TrattaDTO;
 import it.prova.gestionetratte.model.Tratta;
 import it.prova.gestionetratte.service.TrattaService;
+import it.prova.gestionetratte.web.api.exception.IdNotNullForInsertException;
+import it.prova.gestionetratte.web.api.exception.TrattaNotFoundException;
 
 @RestController
 @RequestMapping("api/tratta")
@@ -35,9 +37,9 @@ public class TrattaController {
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public TrattaDTO createNew(@Valid @RequestBody TrattaDTO trattainput) {
-//		if (trattainput.getId()!=null) {
-//			throw new IdNotNullForInsertException("Non è ammesso fornire un id per la creazione");
-//		}
+		if (trattainput.getId()!=null) {
+			throw new IdNotNullForInsertException("Non è ammesso fornire un id per la creazione");
+		}
 		Tratta trattaInserita = trattaService.inserisciNuovo(trattainput.buildTrattaModel());
 		return TrattaDTO.buildTrattaDTOFromModel(trattaInserita, true);
 	}
@@ -60,9 +62,9 @@ public class TrattaController {
 	public TrattaDTO update(@Valid @RequestBody TrattaDTO trattainput,
 			@PathVariable(value = "id", required = true) Long id) {
 		Tratta tratta = trattaService.caricaSingoloElemento(id, false);
-//		if (tratta == null) {
-//			throw new TrattaNotFoundException("Tratta not found con id: "+id);
-//		}
+		if (tratta == null) {
+			throw new TrattaNotFoundException("Tratta not found con id: "+id);
+		}
 		trattainput.setId(id);
 		Tratta trattaAggiornata = trattaService.aggiorna(trattainput.buildTrattaModel());
 		return TrattaDTO.buildTrattaDTOFromModel(trattaAggiornata, true);
@@ -72,5 +74,10 @@ public class TrattaController {
 	public List<TrattaDTO> search(@RequestBody TrattaDTO example) {
 		return TrattaDTO.createTrattaDTOListFromModelList(trattaService.findByExample(example.buildTrattaModel()),
 				true);
+	}
+	
+	@GetMapping("/concludiTratte")
+	public List<TrattaDTO> concludiTratte(){
+		return TrattaDTO.createTrattaDTOListFromModelList(trattaService.concludiTratte(), true) ;
 	}
 }
